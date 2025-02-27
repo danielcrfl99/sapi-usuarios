@@ -1,0 +1,14 @@
+http:
+  port: "8085"
+  
+rest:
+  host: "swapi.dev"
+  pathUsuarios: "people"
+  pathVehiculos: "vehicles"
+  basePath: "api"
+  
+request:
+  host: "![WkXOxozVFaXrqY5mlAnBRg==]"
+  
+soap:
+  wsdl: "http://webservices.oorsprong.org/websamples.countryinfo/CountryInfoService.wso?WSDL"

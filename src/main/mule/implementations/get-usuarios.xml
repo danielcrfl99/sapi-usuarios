@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<flow name="get-usuariosFlow" doc:id="c97e1315-3fea-44ab-8967-1ffa90832eb1" >
+		<set-variable value="#[message.attributes.uriParams.name]" doc:name="Set Variable" doc:id="44197291-559d-459a-ad35-412100be6748" variableName="name"/>
+		<http:request method="GET" doc:name="Request" doc:id="2360d1ed-fdbd-4138-af2b-021fe26d8dc3" config-ref="HTTP_Request_configuration" path="${rest.pathUsuarios}/{name}">
+			<http:uri-params ><![CDATA[#[output application/java
+---
+{
+	"name" : vars.name
+}]]]></http:uri-params>
+		</http:request>
+		<ee:transform doc:name="Transform Message" doc:id="57ff441d-260e-461b-bcb1-06427ea8a2d6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="83cac924-e027-4558-a9dd-9938d8e6a55e" >
+				<ee:transform doc:name="Transform Message" doc:id="717213b6-4314-4625-9384-71cbbdbd21b7" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message": "Ocurrio un error"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+</mule>

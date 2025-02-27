@@ -1,0 +1,7 @@
+%dw 2.0
+
+type auto_0a7eb41f_42e0_48e0_94f3_bddc03f2950d_Output_Payload = {
+  Usuarios: Array<{    nombre: String,     edad: Number,     email: String,     _?: Any  }>, 
+  _?: Any
+} {"description": "Registros obtenidos de la base de datos"}
+
