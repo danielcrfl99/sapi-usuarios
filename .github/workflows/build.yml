@@ -21,40 +21,7 @@ jobs:
         with: 
           distribution: "zulu" 
           java-version: 8
-      - name: Get Organization ID
-        id: get_org_id
-        run: |
-          RESPONSE=$(curl -s -X GET \
-          -H "X-ANYPNT-CLIENT-ID: ${{ secrets.CONNECTED_APP_CLIENT_ID }}" \
-          -H "X-ANYPNT-CLIENT-SECRET: ${{ secrets.CONNECTED_APP_CLIENT_SECRET }}" \
-          "https://anypoint.mulesoft.com/accounts/api/me")
       
-          echo "API Response: $RESPONSE" # Imprime la respuesta para depuración
-      
-          ORG_ID=$(echo "$RESPONSE" | jq -r '.user.organization.id')
-      
-          if [[ -z "$ORG_ID" || "$ORG_ID" == "null" ]]; then
-            echo "❌ ERROR: No se pudo obtener el Organization ID"
-            exit 1
-          fi
-
-      - name: Check if version exists in Exchange 
-        id: check_version
-        run: |
-          ASSET_ID="sapi-usuario" # Cambia esto si tu asset tiene otro nombre
-          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
-          
-          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
-          -H "X-ANYPNT-CLIENT-ID: ${{ secrets.CONNECTED_APP_CLIENT_ID }}" \
-          -H "X-ANYPNT-CLIENT-SECRET: ${{ secrets.CONNECTED_APP_CLIENT_SECRET }}" \
-          "https://anypoint.mulesoft.com/exchange/api/v2/assets/$ORG_ID/$ASSET_ID/$VERSION")
-
-          if [ "$RESPONSE" -eq 200 ]; then
-            echo "EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "EXISTS=false" >> $GITHUB_ENV
-          fi
-
       - name: Publish to Exchange (if not exists)
         if: env.EXISTS == 'false'
         run: | 
