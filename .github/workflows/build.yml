@@ -20,8 +20,36 @@ jobs:
         uses: actions/setup-java@v4
         with: 
           distribution: "zulu" 
-          java-version: 8 
-      - name: Publish to Exchange 
+          java-version: 8
+      - name: Get Organization ID
+        id: get_org_id
+        run: |
+          ORG_ID=$(curl -s -X GET \
+          -H "X-ANYPNT-CLIENT-ID: ${{ secrets.CONNECTED_APP_CLIENT_ID }}" \
+          -H "X-ANYPNT-CLIENT-SECRET: ${{ secrets.CONNECTED_APP_CLIENT_SECRET }}" \
+          "https://anypoint.mulesoft.com/accounts/api/me" | jq -r '.user.organization.id')
+
+          echo "ORG_ID=$ORG_ID" >> $GITHUB_ENV
+
+      - name: Check if version exists in Exchange 
+        id: check_version
+        run: |
+          ASSET_ID="sapi-usuario" # Cambia esto si tu asset tiene otro nombre
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          
+          RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" \
+          -H "X-ANYPNT-CLIENT-ID: ${{ secrets.CONNECTED_APP_CLIENT_ID }}" \
+          -H "X-ANYPNT-CLIENT-SECRET: ${{ secrets.CONNECTED_APP_CLIENT_SECRET }}" \
+          "https://anypoint.mulesoft.com/exchange/api/v2/assets/$ORG_ID/$ASSET_ID/$VERSION")
+
+          if [ "$RESPONSE" -eq 200 ]; then
+            echo "EXISTS=true" >> $GITHUB_ENV
+          else
+            echo "EXISTS=false" >> $GITHUB_ENV
+          fi
+
+      - name: Publish to Exchange (if not exists)
+        if: env.EXISTS == 'false'
         run: | 
           mvn deploy --settings .maven/settings.xml -DskipMunitTests -Dclient.id="${{ secrets.CONNECTED_APP_CLIENT_ID }}" -Dclient.secret="${{ secrets.CONNECTED_APP_CLIENT_SECRET }}"
       - name: Deploy to CloudHub 2.0 
